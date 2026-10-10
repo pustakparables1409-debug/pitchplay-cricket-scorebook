@@ -81,11 +81,17 @@ function createHarness(existingStorage = new Map()) {
     for (const entry of (listeners.submit || [])) entry.handler(event);
     return event;
   }
+  function changeBowler(value) {
+    const t = target({});
+    t.value = value;
+    t.matches = selector => selector === '[data-bowler]';
+    for (const entry of (listeners.change || [])) entry({ target: t });
+  }
   function data() {
     const raw = existingStorage.get('pitchplay-cricket-v3');
     return raw ? JSON.parse(raw) : null;
   }
-  return { listeners, alerts, prompts, nodes, existingStorage, click, submit, data };
+  return { listeners, alerts, prompts, nodes, existingStorage, click, submit, changeBowler, data };
 }
 
 test('inline application JavaScript parses and has a startup status', () => {
@@ -145,6 +151,10 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
 
   app.click({ run: '4' });
   db = app.data();
+  const firstBowler = db.matches[0].innings[0].bowlerId;
+  app.changeBowler(db.teams[1].players[1].id);
+  assert.equal(app.data().matches[0].innings[0].bowlerId, firstBowler, 'a bowler cannot change mid-over');
+  assert.ok(app.alerts.some(message => /only after the over is complete/i.test(message)));
   assert.equal(db.matches[0].innings[0].total, 4);
   assert.equal(db.matches[0].innings[0].balls, 1);
 
@@ -180,6 +190,8 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
   assert.equal(db.matches[0].innings[0].balls, 6);
   assert.equal(db.matches[0].innings[0].total, 9);
 
+  app.changeBowler(db.teams[1].players[1].id);
+  assert.equal(app.data().matches[0].innings[0].bowlerId, db.teams[1].players[1].id, 'a new bowler can be selected at the over boundary');
   app.click({ action: 'wicket' });
   const currentInning = app.data().matches[0].innings[0];
   const thirdPlayer = app.data().teams[0].players[2];

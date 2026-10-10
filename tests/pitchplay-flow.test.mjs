@@ -157,6 +157,24 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
   db = app.data();
   assert.equal(db.matches[0].innings[0].total, 4);
 
+  app.click({ extra: 'wide' });
+  db = app.data();
+  assert.equal(db.matches[0].innings[0].total, 5);
+  assert.equal(db.matches[0].innings[0].balls, 1, 'a wide must not use a legal ball');
+  assert.equal(db.matches[0].innings[0].extras.wide, 1);
+  app.click({ action: 'undo' });
+  assert.equal(app.data().matches[0].innings[0].total, 4);
+
+  app.click({ extra: 'bye' });
+  db = app.data();
+  assert.equal(db.matches[0].innings[0].total, 5);
+  assert.equal(db.matches[0].innings[0].balls, 2, 'a bye is a legal delivery');
+  assert.equal(db.matches[0].innings[0].extras.bye, 1);
+  app.click({ action: 'undo' });
+  db = app.data();
+  assert.equal(db.matches[0].innings[0].total, 4);
+  assert.equal(db.matches[0].innings[0].balls, 1);
+
   for (let i = 0; i < 5; i++) app.click({ run: '1' });
   db = app.data();
   assert.equal(db.matches[0].innings[0].balls, 6);
@@ -195,4 +213,22 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
   assert.equal(reloaded.data().teams.length, 2);
   assert.equal(reloaded.data().matches[0].innings[1].total, 4);
   assert.match(reloaded.nodes['#app'].innerHTML, /Live Scoring|RUNS|overs/);
+});
+
+test('Test cricket can finish with the correct innings result', () => {
+  const app = createHarness();
+  app.click({ action: 'new-team' });
+  app.submit({ id: 'teamComposerForm', fields: { name: 'North XI', short: 'NRTH', color: '#236447', players: 'N1\\nN2' }, reportValidity() { return true; } });
+  app.click({ action: 'new-team' });
+  app.submit({ id: 'teamComposerForm', fields: { name: 'South XI', short: 'STH', color: '#173f75', players: 'S1\\nS2' }, reportValidity() { return true; } });
+  let db = app.data();
+  app.submit({ id: 'matchForm', fields: { name: 'Test innings result', teamA: db.teams[0].id, teamB: db.teams[1].id, format: 'Test', overs: '20', ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
+  app.click({ action: 'end-innings' }); // North XI: 0
+  app.click({ run: '1' });             // South XI: 1
+  app.click({ action: 'end-innings' });
+  app.click({ action: 'end-innings' }); // North XI second innings: 0
+  db = app.data();
+  assert.equal(db.matches[0].status, 'completed');
+  assert.match(db.matches[0].result, /South XI won by an innings and 1 run/);
+  assert.equal(db.matches[0].innings.length, 3, 'the fourth innings must not start when the match is already decided');
 });

@@ -75,6 +75,8 @@ function createHarness(existingStorage = new Map()) {
     return event;
   }
   function submit(form) {
+    if (!form.classList) form.classList = { contains: () => false };
+    if (!form.dataset) form.dataset = {};
     const event = { target: form, prevented: false, preventDefault() { this.prevented = true; } };
     for (const entry of (listeners.submit || [])) entry.handler(event);
     return event;

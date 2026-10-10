@@ -16,7 +16,7 @@ Netlify can redeploy automatically whenever changes are pushed to the `main` bra
 
 ## Files
 
-- `index.html` — PitchPlay app (compressed bootloader that expands the full app in current browsers)
+- `index.html` — standalone PitchPlay app (self-contained HTML/CSS/JavaScript; no build step or external UI library required)
 - `manifest.webmanifest` — installable web app metadata
 - `pitchplay-icon.svg` — app icon
 - `sw.js` — versioned offline app-shell cache

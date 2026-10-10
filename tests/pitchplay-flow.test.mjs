@@ -85,7 +85,7 @@ function createHarness(existingStorage = new Map()) {
     const t = target({});
     t.value = value;
     t.matches = selector => selector === '[data-bowler]';
-    for (const entry of (listeners.change || [])) entry({ target: t });
+    for (const entry of (listeners.change || [])) entry.handler({ target: t });
   }
   function data() {
     const raw = existingStorage.get('pitchplay-cricket-v3');

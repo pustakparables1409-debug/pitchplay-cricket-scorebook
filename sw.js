@@ -1,5 +1,5 @@
-/* PitchPlay app shell cache. Score data remains in local browser storage/IndexedDB. */
-const CACHE_NAME = 'pitchplay-shell-v9';
+/* PitchPlay versioned app shell. Network-first navigations help fixes reach users; cached fallback keeps the app shell available offline. */
+const CACHE_NAME = 'pitchplay-shell-v10';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './pitchplay-icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
@@ -13,10 +13,23 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   const req = event.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (req.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(req).then(response => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(req, copy)));
+        }
+        return response;
+      }).catch(() => caches.match(req).then(cached => cached || caches.match('./index.html')))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req).then(cached => cached || fetch(req).then(response => {
-      if (response && response.ok) caches.open(CACHE_NAME).then(cache => cache.put(req, response.clone()));
+      if (response && response.ok) event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(req, response.clone())));
       return response;
     }).catch(() => caches.match('./index.html')))
   );

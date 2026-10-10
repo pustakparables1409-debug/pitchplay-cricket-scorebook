@@ -229,7 +229,7 @@ function endInnings(declare){
    if(m.format==='Test'&&index===3&&target<=0){
      const aTotal=(Number(m.innings[0]?.total)||0)+(Number(m.innings[2]?.total)||0);
      const bTotal=Number(m.innings[1]?.total)||0;const margin=Math.max(0,bTotal-aTotal);
-     m.status='completed';m.completedAt=new Date().toISOString();m.result=getTeam(m.teamB).name+' won by an innings'+(margin?' and '+margin+' runs':'');
+     m.status='completed';m.completedAt=new Date().toISOString();m.result=getTeam(m.teamB).name+' won by an innings'+(margin?' and '+margin+' '+(margin===1?'run':'runs'):'');
      save();render();return
    }
    m.innings.push(newMatchInn(m,index,target));m.currentInnings=index;m.status='live';save();render();return

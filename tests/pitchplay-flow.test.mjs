@@ -218,9 +218,9 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
 test('Test cricket can finish with the correct innings result', () => {
   const app = createHarness();
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'North XI', short: 'NRTH', color: '#236447', players: 'N1\\nN2' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamComposerForm', fields: { name: 'North XI', short: 'NRTH', color: '#236447', players: 'N1\nN2' }, reportValidity() { return true; } });
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'South XI', short: 'STH', color: '#173f75', players: 'S1\\nS2' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamComposerForm', fields: { name: 'South XI', short: 'STH', color: '#173f75', players: 'S1\nS2' }, reportValidity() { return true; } });
   let db = app.data();
   app.submit({ id: 'matchForm', fields: { name: 'Test innings result', teamA: db.teams[0].id, teamB: db.teams[1].id, format: 'Test', overs: '20', ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
   app.click({ action: 'end-innings' }); // North XI: 0

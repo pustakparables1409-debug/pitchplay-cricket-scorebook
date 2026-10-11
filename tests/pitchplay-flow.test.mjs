@@ -393,7 +393,7 @@ test('scoring celebrations cover boundaries, wickets, fifties, centuries, overs 
   assert.match(source, /showMoment\('milestone','HALF-CENTURY!'/);
   assert.match(source, /showMoment\('milestone','CENTURY!'/);
   assert.match(source, /showMoment\('wicket','WICKET!'/);
-  assert.match(source, /showMoment\('over','OVER COMPLETE'/);
+  assert.match(source, /showMoment\(inn\.complete\?'innings':'over',inn\.complete\?'INNINGS COMPLETE':'OVER COMPLETE'/);
   assert.match(source, /showMoment\('result','MATCH COMPLETE'/);
 });
 test('wicket flow requires an incoming batter except when the innings will be all out', () => {

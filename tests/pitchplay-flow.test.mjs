@@ -99,7 +99,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 21');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 22');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -108,6 +108,11 @@ test('text fields remain editable and render visible typed text/caret styles', (
   assert.match(html, /pointer-events:auto/);
   assert.match(source, /document\.addEventListener\('input'/);
   assert.doesNotMatch(source, /addEventListener\('focusin'/);
+});
+
+test('regression: theme click handler only matches actual theme buttons, not the html root', () => {
+  assert.doesNotMatch(source, /closest\\('\[data-theme\]'\\)/);
+  assert.match(source, /closest\\('button\\[data-theme\\]'\\)/);
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {

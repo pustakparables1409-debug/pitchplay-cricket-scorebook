@@ -11,11 +11,13 @@ const match = html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
 assert.ok(match, 'the app must contain its inline application script');
 const source = match[1];
 
-function createHarness(existingStorage = new Map()) {
+function createHarness(existingStorage = new Map(), options = {}) {
   const listeners = Object.create(null);
   const alerts = [];
   const prompts = [];
   const nodes = Object.create(null);
+  const autoSetup = options.autoSetup !== false;
+  const autoToss = options.autoToss !== false;
   const node = (id = '') => ({
     id, innerHTML: '', textContent: '', value: '', content: '',
     focused: false,
@@ -73,13 +75,26 @@ function createHarness(existingStorage = new Map()) {
   function click(data) {
     const event = { target: target(data), prevented: false, preventDefault() { this.prevented = true; } };
     for (const entry of (listeners.click || [])) entry.handler(event);
+    if(data.action==='end-innings'||data.action==='declare'||data.action==='undo')setupCurrentInnings();
+    if(autoSetup&&(data.extra==='wide'||data.extra==='noBall')&&nodes['#modalhost'].innerHTML.includes('extraRunsForm'))submit({id:'extraRunsForm',fields:{type:data.extra,runs:'0'}});
     return event;
+  }
+  function setupCurrentInnings() {
+    if (!autoSetup) return;
+    const db = data(); if (!db) return;
+    const m = db.matches.find(x => x.id === db.currentMatchId) || db.matches.find(x => x.status === 'live');
+    const inn = m && m.innings[m.currentInnings]; if (!m || m.status !== 'live' || !inn || (inn.strikerId && inn.nonStrikerId && inn.bowlerId)) return;
+    const bat = db.teams.find(t => t.id === inn.battingTeamId), bowl = db.teams.find(t => t.id === inn.bowlingTeamId);
+    const bp = (bat && bat.players || []).filter(p => !p.deleted), wp = (bowl && bowl.players || []).filter(p => !p.deleted);
+    if (bp.length >= 2 && wp.length) submit({id:'inningsSetupForm',fields:{striker:bp[0].id,nonStriker:bp[1].id,bowler:wp[0].id}});
   }
   function submit(form) {
     if (!form.classList) form.classList = { contains: () => false };
     if (!form.dataset) form.dataset = {};
     const event = { target: form, prevented: false, preventDefault() { this.prevented = true; } };
     for (const entry of (listeners.submit || [])) entry.handler(event);
+    if (form.id === 'matchForm' && autoToss) { const f=form.fields||{}, winner=options.tossWinnerField==='teamB'?f.teamB:f.teamA; submit({id:'tossForm',fields:{tossWinner:winner,decision:options.tossDecision||'bat'}}); }
+    if (form.id === 'tossForm') setupCurrentInnings();
     return event;
   }
   function changeBowler(value) {
@@ -99,7 +114,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 26');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 27');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -385,8 +400,9 @@ test('wicket flow requires an incoming batter except when the innings will be al
   assert.match(source, /const needsNext=inn\.wickets\+1<wicketLimit\(inn\)/);
   assert.match(source, /needsNext\?'required':''/);
   assert.match(source, /Choose the incoming batter before confirming this wicket/);
-  assert.match(source, /p\.id!==otherId/);
-  assert.match(source, /!stats\.out/);
+  assert.match(source, /function openInningsSetup\(\)/);
+  assert.match(source, /Choose two different active batters/);
+  assert.doesNotMatch(html, /select data-batter=/);
 });
 test('match report includes every innings, extras breakdown, fall of wickets and ball-by-ball events', () => {
   assert.match(source, /function matchSummary\(m\)/);
@@ -397,4 +413,26 @@ test('match report includes every innings, extras breakdown, fall of wickets and
   assert.match(source, /function inningsReport\(inn,m,index,printMode\)/);
   assert.match(source, /for\(let idx=0;idx<m\.innings\.length;idx\+\+\)/);
   assert.match(source, /window\.print\(\)/);
+});
+
+
+test('T10/T20/ODI presets and toss decision determine innings order while player selection stays manual', () => {
+ const app=createHarness(new Map(),{tossWinnerField:'teamB',tossDecision:'bowl',autoSetup:false});
+ app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'North XI',short:'NR',color:'#236447',players:'N1\\nN2'},reportValidity(){return true}});
+ app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'South XI',short:'ST',color:'#173f75',players:'S1\\nS2'},reportValidity(){return true}});
+ const teams=app.data().teams;
+ app.submit({id:'matchForm',fields:{name:'Toss Test',teamA:teams[0].id,teamB:teams[1].id,format:'T10',overs:'20',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
+ let m=app.data().matches[0];assert.equal(m.overs,10);assert.equal(m.tossWinnerId,teams[1].id);assert.equal(m.tossDecision,'bowl');assert.equal(m.firstBattingTeamId,teams[0].id);assert.equal(m.innings[0].battingTeamId,teams[0].id);assert.equal(m.innings[0].strikerId,null);assert.equal(m.innings[0].nonStrikerId,null);assert.equal(m.innings[0].bowlerId,null);
+ app.submit({id:'matchForm',fields:{name:'T20 Test',teamA:teams[0].id,teamB:teams[1].id,format:'T20',overs:'10',ballsPerOver:'6',maxBowlerOvers:'2',venue:'',umpires:''}});
+ m=app.data().matches[0];assert.equal(m.overs,20);
+ app.submit({id:'matchForm',fields:{name:'ODI Test',teamA:teams[0].id,teamB:teams[1].id,format:'ODI',overs:'20',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
+ assert.equal(app.data().matches[0].overs,50);
+});
+test('PDF report contains dismissal attribution and partnerships but excludes ball-by-ball listing',()=>{
+ assert.ok(source.includes('function dismissalDescription(type,bowler,fielder)'));
+ assert.ok(source.includes('function partnershipsTable(inn)'));
+ const report=source.slice(source.indexOf('function inningsReport('),source.indexOf('function matchAwards('));
+ assert.ok(report.includes('partnershipsTable(inn)'));
+ assert.equal(report.includes('ballByBallTable(inn,m)'),false);
+ assert.ok(source.includes('Download match scorecard PDF'));
 });

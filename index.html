@@ -78,7 +78,7 @@ html{scroll-behavior:smooth}.shell{animation:page-enter .42s ease-out both}.pane
 <body>
 <div class="shell">
 <header class="topbar">
-  <div class="brandmark"><div class="logo">P!</div><div><h1>PitchPlay</h1><div class="sub">Cricket Score Studio <span class="build-label">BUILD 19</span></div></div></div>
+  <div class="brandmark"><div class="logo">P!</div><div><h1>PitchPlay</h1><div class="sub">Cricket Score Studio <span class="build-label">BUILD 20</span></div></div></div>
   <div class="top-actions"><span class="status"><i class="dot"></i><span id="saveStatus">Saved on this device</span></span><button class="btn soft" data-action="export">Export backup</button><button class="btn" data-action="import">Import</button><input id="importFile" type="file" accept="application/json,.json" hidden></div>
 </header>
 <nav class="nav" aria-label="Main navigation">
@@ -417,8 +417,6 @@ document.addEventListener('change',e=>{const r=e.target;if(r.matches('[data-team
  if(previous&&previous===r.value){alert('A bowler cannot bowl consecutive overs. Choose another player.');render();return}
  inn.bowlerId=r.value;ensureBowl(inn,r.value);save();render()
 }else if(r.id==='importFile'&&r.files[0])importBackup(r.files[0]);else if(r.id==='playerSearch'){analyticsQuery=r.value;render()}});
-document.addEventListener('pointerdown',e=>{const field=e.target&&e.target.closest&&e.target.closest('#app input,#app textarea,#app select');if(field){field.disabled=false;field.readOnly=false;field.style.pointerEvents='auto';field.style.webkitTextFillColor='var(--text)';field.style.caretColor='var(--brand)'}},true);
-document.addEventListener('focusin',e=>{const field=e.target;if(field&&field.matches&&field.matches('#app input,#app textarea,#app select')){field.disabled=false;field.readOnly=false;field.style.pointerEvents='auto';field.style.webkitTextFillColor='var(--text)';field.style.caretColor='var(--brand)'}},true);
 document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#teamForm')){setSaveStatus('Editing team details…')}else if(e.target.closest&&e.target.closest('.addPlayerForm')){setSaveStatus('Editing player details…')}else if(e.target.id==='playerSearch'){const pos=e.target.selectionStart;analyticsQuery=e.target.value;const val=analyticsQuery;const all=allPlayers().filter(p=>!p.deleted&& (p.name+' '+p.teamName).toLowerCase().includes(val.toLowerCase()));$('#app').innerHTML='<section class="panel"><div class="panelhead"><div><h2>Player Career Analytics</h2><div class="sub">Batting · Bowling · Catches · Fielding</div></div><input class="searchbar" id="playerSearch" value="'+esc(val)+'" placeholder="Search player or team…"></div><div class="line"></div><div class="grid two">'+(all.map(p=>playerStatsCard(p)).join('')||'<div class="empty">No players found.</div>')+'</div></section>';const inp=$('#playerSearch');inp.focus();inp.setSelectionRange(pos,pos)}else if(e.target.id==='matchSearch'){const q=e.target.value.toLowerCase();const rows=db.matches.filter(m=>!m.deleted&&(m.name+' '+teamName(m.teamA)+' '+teamName(m.teamB)).toLowerCase().includes(q));const list=$('#matchList');if(list)list.innerHTML=rows.map(m=>'<div class="matchrow"><div style="min-width:0"><div class="matchtitle">'+esc(m.name)+'</div><div class="matchmeta">'+esc(m.format)+' · '+new Date(m.date).toLocaleDateString()+' · '+esc(m.status==='live'?'Live':m.result||'Completed')+'</div><div class="sub">'+esc(teamName(m.teamA))+' vs '+esc(teamName(m.teamB))+'</div></div><div class="top-actions"><button class="btn primary small" data-action="open-match" data-id="'+m.id+'">Open</button><button class="btn danger small" data-action="delete-match" data-id="'+m.id+'">Delete</button></div></div>').join('')||'<div class="empty">No matching matches.</div>'}});
 const origNewInn=newMatchInn;
 async function recover(){try{if(!('indexedDB'in window))return;const req=indexedDB.open('PitchPlayRecovery',1);req.onupgradeneeded=()=>req.result.createObjectStore('snapshots');req.onsuccess=()=>{const d=req.result;const get=d.transaction('snapshots','readonly').objectStore('snapshots').get('latest');get.onsuccess=()=>{const rec=get.result;if(rec&&rec.updated>(db.updated||0)&&confirm('A newer local recovery copy was found. Restore it?')){db=rec.data;save();render()}d.close()}}}catch(e){}}
@@ -432,7 +430,7 @@ function reportAppError(message){
 }
 window.addEventListener('error',event=>{console.error('PitchPlay runtime error:',event.error||event.message);reportAppError(event.message||'Unexpected script error')});
 window.addEventListener('unhandledrejection',event=>{console.error('PitchPlay async error:',event.reason);reportAppError(event.reason&&event.reason.message||'Unexpected async error')});
-setSaveStatus('Ready · Build 19');applyTheme();render();recover();if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+setSaveStatus('Ready · Build 20');applyTheme();render();recover();if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
 </body></html>

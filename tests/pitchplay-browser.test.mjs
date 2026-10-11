@@ -37,7 +37,10 @@ test('real Chromium can type, change team colour, save teams/players, and start 
     throw new Error('Team entry screen did not render. App text: ' + (await page.locator('#app').innerText()) + ' Page errors: ' + pageErrors.join(' | '));
   });
   const teamNameInput = page.locator('#teamNameInput');
+  await teamNameInput.evaluate(el => { window.__originalTeamNameInput = el; window.__inputDebug = []; document.addEventListener('input', ev => window.__inputDebug.push({ id:ev.target.id, value:ev.target.value, active:document.activeElement && document.activeElement.id, same:ev.target===window.__originalTeamNameInput }), true); });
   await teamNameInput.click();
+  const focusedAfterClick = await teamNameInput.evaluate(el => document.activeElement === el);
+  assert.equal(focusedAfterClick, true, 'Team name input does not take focus when clicked');
   await page.keyboard.type('Metro XI');
   const typingState = await teamNameInput.evaluate(el => ({
     value: el.value,
@@ -45,7 +48,9 @@ test('real Chromium can type, change team colour, save teams/players, and start 
     activeId: document.activeElement && document.activeElement.id,
     disabled: el.disabled,
     readOnly: el.readOnly,
-    outerHTML: el.outerHTML
+    outerHTML: el.outerHTML,
+    sameElement: el === window.__originalTeamNameInput,
+    inputEvents: window.__inputDebug
   }));
   assert.equal(typingState.value, 'Metro XI', JSON.stringify({ typingState, pageErrors, appText: await page.locator('#app').innerText() }));
   await page.locator('input[name="short"]').fill('MTX');

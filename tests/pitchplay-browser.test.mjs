@@ -105,7 +105,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await metro.locator('input[name="playerName"]').fill('Third Batter');
   await metro.locator('input[name="jersey"]').fill('9');
   await metro.getByRole('button', { name:/Add player/ }).click();
-  await metro.getByText('Third Batter').waitFor();
+  await metro.locator('.playerrow .playername').filter({ hasText:/^Third Batter$/ }).waitFor();
 
   await page.locator('.nav [data-tab="matches"]').click();
   await page.locator('#matchForm').waitFor();

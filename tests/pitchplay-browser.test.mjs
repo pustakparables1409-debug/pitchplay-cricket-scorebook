@@ -13,7 +13,7 @@ const types = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; char
 test('real Chromium can type, change team colour, save teams/players, and start a match', async t => {
   const server = createServer((req, res) => {
     const path = decodeURIComponent((req.url || '/').split('?')[0]);
-    const rel = path === '/' ? 'index.html' : path.replace(/^\\/+/, '');
+    const rel = path === '/' ? 'index.html' : (path.startsWith('/') ? path.slice(1) : path);
     const file = resolve(root, rel);
     if (!(file === root || file.startsWith(root + sep)) || !existsSync(file)) {
       res.writeHead(404); res.end('Not found'); return;

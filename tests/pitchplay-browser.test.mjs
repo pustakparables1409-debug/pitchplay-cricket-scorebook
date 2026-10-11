@@ -36,9 +36,18 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {
     throw new Error('Team entry screen did not render. App text: ' + (await page.locator('#app').innerText()) + ' Page errors: ' + pageErrors.join(' | '));
   });
-  await page.locator('#teamNameInput').click();
+  const teamNameInput = page.locator('#teamNameInput');
+  await teamNameInput.click();
   await page.keyboard.type('Metro XI');
-  assert.equal(await page.locator('#teamNameInput').inputValue(), 'Metro XI');
+  const typingState = await teamNameInput.evaluate(el => ({
+    value: el.value,
+    focused: document.activeElement === el,
+    activeId: document.activeElement && document.activeElement.id,
+    disabled: el.disabled,
+    readOnly: el.readOnly,
+    outerHTML: el.outerHTML
+  }));
+  assert.equal(typingState.value, 'Metro XI', JSON.stringify({ typingState, pageErrors, appText: await page.locator('#app').innerText() }));
   await page.locator('input[name="short"]').fill('MTX');
   await page.locator('input[name="color"]').evaluate(el => {
     el.value = '#c2185b';

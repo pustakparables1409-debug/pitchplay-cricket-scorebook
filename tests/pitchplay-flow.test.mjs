@@ -98,7 +98,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 14');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 15');
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {

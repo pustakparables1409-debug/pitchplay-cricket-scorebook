@@ -22,6 +22,21 @@ Netlify can redeploy automatically whenever changes are pushed to the `main` bra
 - `sw.js` — versioned offline app-shell cache
 - `netlify.toml` and `_headers` — static hosting setup
 
+## Tests
+
+- `tests/pitchplay-flow.test.mjs` covers team creation, scoring, match results, local-data recovery and regressions.
+- `tests/pitchplay-browser.test.mjs` runs real Chromium checks for keyboard typing, team-colour changes, player creation and match setup.
+
+To run both suites locally with Node.js 22+:
+
+```sh
+npm install --no-save playwright
+npx playwright install --with-deps chromium
+node --test tests/pitchplay-flow.test.mjs tests/pitchplay-browser.test.mjs
+```
+
+GitHub Actions installs Chromium and runs both test suites on pushes to `main` and pull requests.
+
 ## Important data note
 
 Teams, players and matches are saved per browser/device. This static deployment does **not** synchronize match data automatically between different devices; cross-device live sync requires a shared backend. Export important match backups regularly.

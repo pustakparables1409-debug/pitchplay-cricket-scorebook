@@ -33,6 +33,9 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   assert.match(await page.locator('#saveStatus').innerText(), /Build 17/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
+  await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {
+    throw new Error('Team entry screen did not render. App text: ' + (await page.locator('#app').innerText()) + ' Page errors: ' + pageErrors.join(' | '));
+  });
   await page.locator('#teamNameInput').click();
   await page.keyboard.type('Metro XI');
   assert.equal(await page.locator('#teamNameInput').inputValue(), 'Metro XI');

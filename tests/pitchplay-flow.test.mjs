@@ -99,15 +99,15 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 19');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 20');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
   assert.match(html, /-webkit-text-fill-color:var\(--text\)/);
   assert.match(html, /caret-color:var\(--brand\)/);
   assert.match(html, /pointer-events:auto/);
-  assert.match(source, /document\.addEventListener\('focusin'/);
-  assert.match(source, /field\.readOnly=false/);
+  assert.match(source, /document\.addEventListener\('input'/);
+  assert.doesNotMatch(source, /addEventListener\('focusin'/);
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {

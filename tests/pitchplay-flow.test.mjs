@@ -99,7 +99,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 22');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 23');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -293,4 +293,72 @@ test('Test cricket can finish with the correct innings result', () => {
   assert.equal(db.matches[0].status, 'completed');
   assert.match(db.matches[0].result, /South XI won by an innings and 1 run/);
   assert.equal(db.matches[0].innings.length, 3, 'the fourth innings must not start when the match is already decided');
+});
+
+
+function seedMatch(app, format = 'T20', overs = '20') {
+  app.click({ action: 'new-team' });
+  app.submit({ id: 'teamForm', fields: { name: 'Metro XI', short: 'MTX', color: '#236447', players: 'A1\\nA2\\nA3' }, reportValidity() { return true; } });
+  app.click({ action: 'new-team' });
+  app.submit({ id: 'teamForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'B1\\nB2\\nB3' }, reportValidity() { return true; } });
+  const db = app.data();
+  app.submit({ id: 'matchForm', fields: { name: 'Regression', teamA: db.teams[0].id, teamB: db.teams[1].id, format, overs, ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
+  return app.data();
+}
+
+test('a bowler is credited with a maiden only for a full over of scoreless legal balls', () => {
+  const app = createHarness();
+  seedMatch(app);
+  for (let i = 0; i < 6; i++) app.click({ run: '0' });
+  let inn = app.data().matches[0].innings[0];
+  assert.equal(inn.bowlers[inn.bowlerId].maidens, 1);
+  app.changeBowler(app.data().teams[1].players[1].id);
+  app.click({ run: '1' });
+  for (let i = 0; i < 5; i++) app.click({ run: '0' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.bowlers[inn.bowlerId].maidens, 0, 'an over containing a run is not a maiden');
+});
+
+test('undo snapshots stay small and restore the event history correctly', () => {
+  const app = createHarness();
+  seedMatch(app);
+  for (let i = 0; i < 4; i++) app.click({ run: '1' });
+  const m = app.data().matches[0];
+  assert.ok(m.undo.every(entry => entry.inn.events.length === 0 && typeof entry.eventsLen === 'number'));
+  app.click({ action: 'undo' });
+  const inn = app.data().matches[0].innings[0];
+  assert.equal(inn.events.length, 3);
+  assert.equal(inn.total, 3);
+});
+
+test('a limited-overs chase that falls short finishes automatically with the correct margin', () => {
+  const app = createHarness();
+  seedMatch(app, 'T20', '1');
+  for (let i = 0; i < 6; i++) app.click({ run: '1' });
+  app.click({ action: 'end-innings' });
+  for (let i = 0; i < 6; i++) app.click({ run: '0' });
+  const m = app.data().matches[0];
+  assert.equal(m.status, 'completed');
+  assert.equal(m.result, 'Metro XI won by 6 runs');
+});
+
+test('a Test match whose last innings is not all out is drawn, not awarded to the batting-first side', () => {
+  const app = createHarness();
+  seedMatch(app, 'Test');
+  app.click({ run: '4' });
+  app.click({ action: 'end-innings' });
+  app.click({ run: '1' });
+  app.click({ action: 'end-innings' });
+  app.click({ run: '2' });
+  app.click({ action: 'end-innings' });
+  app.click({ run: '3' });
+  app.click({ action: 'end-innings' });
+  assert.equal(app.data().matches[0].result, 'Match drawn');
+});
+
+test('corrupt saved data is preserved under a backup key', () => {
+  const storage = new Map([['pitchplay-cricket-v3', '{not valid json']]);
+  const app = createHarness(storage);
+  assert.ok([...storage.keys()].some(key => key.startsWith('pitchplay-cricket-v3-corrupt-')));
+  assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Create your team/);
 });

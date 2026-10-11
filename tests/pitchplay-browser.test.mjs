@@ -30,10 +30,11 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
-  assert.match(await page.locator('#saveStatus').innerText(), /Build 16/);
+  assert.match(await page.locator('#saveStatus').innerText(), /Build 17/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
-  await page.locator('#teamNameInput').fill('Metro XI');
+  await page.locator('#teamNameInput').click();
+  await page.keyboard.type('Metro XI');
   assert.equal(await page.locator('#teamNameInput').inputValue(), 'Metro XI');
   await page.locator('input[name="short"]').fill('MTX');
   await page.locator('input[name="color"]').evaluate(el => {
@@ -47,6 +48,13 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await metro.waitFor();
   assert.equal(await metro.locator('.teamstripe').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(194, 24, 91)');
   assert.equal(await metro.locator('.playerrow').count(), 2);
+  await metro.locator('input[data-team-color]').evaluate(el => {
+    el.value = '#1b7f3a';
+    el.dispatchEvent(new Event('input', { bubbles:true }));
+    el.dispatchEvent(new Event('change', { bubbles:true }));
+  });
+  assert.equal(await metro.locator('.teamstripe').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(27, 127, 58)');
+  assert.match(await page.locator('#saveStatus').innerText(), /Team colour saved: Metro XI/);
 
   await page.locator('#teamNameInput').fill('Harbor XI');
   await page.locator('input[name="short"]').fill('HBX');

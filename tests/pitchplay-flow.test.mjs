@@ -98,7 +98,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 12');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 13');
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {
@@ -111,11 +111,12 @@ test('all rendered action names are represented by the delegated action handler'
 test('team modal accepts typing, creates a squad, and player form persists', () => {
   const app = createHarness();
   app.click({ action: 'new-team' });
-  assert.match(app.nodes['#modalhost'].innerHTML, /id="teamComposerForm"/);
+  assert.match(app.nodes['#app'].innerHTML, /id="teamForm"/);
+  assert.equal(app.nodes['#teamNameInput'].focused, true);
   assert.equal(app.nodes['#newTeamName'].focused, true);
 
   app.submit({
-    id: 'teamComposerForm', fields: {
+    id: 'teamForm', fields: {
       name: 'Metro XI', short: 'MTX', color: '#236447',
       players: 'Alpha Batter\nBravo Batter\nCharlie Batter'
     }, reportValidity() { return true; }
@@ -139,9 +140,9 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
 test('match setup, legal scoring, extras, undo, wickets, innings transition and chase are consistent', () => {
   const app = createHarness();
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'Metro XI', short: 'MTX', color: '#236447', players: 'Alpha\nBravo\nCharlie' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'Metro XI', short: 'MTX', color: '#236447', players: 'Alpha\nBravo\nCharlie' }, reportValidity() { return true; } });
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'Delta\nEcho\nFoxtrot' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'Delta\nEcho\nFoxtrot' }, reportValidity() { return true; } });
   let db = app.data();
   const [a, b] = db.teams;
   app.submit({ id: 'matchForm', fields: { name: 'Smoke Test Final', teamA: a.id, teamB: b.id, format: 'T20', overs: '20', ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
@@ -230,9 +231,9 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
 test('Test cricket can finish with the correct innings result', () => {
   const app = createHarness();
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'North XI', short: 'NRTH', color: '#236447', players: 'N1\nN2' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'North XI', short: 'NRTH', color: '#236447', players: 'N1\nN2' }, reportValidity() { return true; } });
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamComposerForm', fields: { name: 'South XI', short: 'STH', color: '#173f75', players: 'S1\nS2' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'South XI', short: 'STH', color: '#173f75', players: 'S1\nS2' }, reportValidity() { return true; } });
   let db = app.data();
   app.submit({ id: 'matchForm', fields: { name: 'Test innings result', teamA: db.teams[0].id, teamB: db.teams[1].id, format: 'Test', overs: '20', ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
   app.click({ action: 'end-innings' }); // North XI: 0

@@ -78,7 +78,7 @@ html{scroll-behavior:smooth}.shell{animation:page-enter .42s ease-out both}.pane
 <body>
 <div class="shell">
 <header class="topbar">
-  <div class="brandmark"><div class="logo">P!</div><div><h1>PitchPlay</h1><div class="sub">Cricket Score Studio <span class="build-label">BUILD 24</span></div></div></div>
+  <div class="brandmark"><div class="logo">P!</div><div><h1>PitchPlay</h1><div class="sub">Cricket Score Studio <span class="build-label">BUILD 25</span></div></div></div>
   <div class="top-actions"><span class="status"><i class="dot"></i><span id="saveStatus">Saved on this device</span></span><button class="btn soft" data-action="export">Export backup</button><button class="btn" data-action="import">Import</button><input id="importFile" type="file" accept="application/json,.json" hidden></div>
 </header>
 <nav class="nav" aria-label="Main navigation">
@@ -224,7 +224,8 @@ function finishMatch(m){
  }else m.result='Match drawn'
 }
 function afterDelivery(m,inn){
- checkMaiden(m,inn);
+ const lastEvent=inn.events[inn.events.length-1];
+ if(lastEvent&&lastEvent.legal)checkMaiden(m,inn);
  if(inn.wickets>=wicketLimit(inn))inn.complete=true;
  if(m.format!=='Test'&&inn.balls>=m.overs*m.ballsPerOver)inn.complete=true;
  if(inn.target&&inn.total>=inn.target){inn.complete=true;finishMatch(m);return}
@@ -441,7 +442,7 @@ function reportAppError(message){
 }
 window.addEventListener('error',event=>{console.error('PitchPlay runtime error:',event.error||event.message);reportAppError(event.message||'Unexpected script error')});
 window.addEventListener('unhandledrejection',event=>{console.error('PitchPlay async error:',event.reason);reportAppError(event.reason&&event.reason.message||'Unexpected async error')});
-setSaveStatus('Ready · Build 24');applyTheme();render();recover();if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+setSaveStatus('Ready · Build 25');applyTheme();render();recover();if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
 </body></html>

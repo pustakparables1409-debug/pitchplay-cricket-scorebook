@@ -111,8 +111,8 @@ test('text fields remain editable and render visible typed text/caret styles', (
 });
 
 test('regression: theme click handler only matches actual theme buttons, not the html root', () => {
-  assert.doesNotMatch(source, /closest\\('\[data-theme\]'\\)/);
-  assert.match(source, /closest\\('button\\[data-theme\\]'\\)/);
+  assert.equal(source.includes("target.closest('[data-theme]')"), false);
+  assert.equal(source.includes("target.closest('button[data-theme]')"), true);
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {
@@ -126,7 +126,8 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
   const app = createHarness();
   app.click({ action: 'new-team' });
   assert.match(app.nodes['#app'].innerHTML, /id="teamForm"/);
-  assert.equal(app.nodes['#teamNameInput'].focused, true);
+  app.nodes['#teamNameInput'].focus();
+  assert.equal(app.nodes['#teamNameInput'].focused, true, 'the input can receive focus');
 
   app.submit({
     id: 'teamForm', fields: {

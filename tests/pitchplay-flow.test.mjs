@@ -298,9 +298,9 @@ test('Test cricket can finish with the correct innings result', () => {
 
 function seedMatch(app, format = 'T20', overs = '20') {
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamForm', fields: { name: 'Metro XI', short: 'MTX', color: '#236447', players: 'A1\\nA2\\nA3' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'Metro XI', short: 'MTX', color: '#236447', players: 'A1\nA2\nA3' }, reportValidity() { return true; } });
   app.click({ action: 'new-team' });
-  app.submit({ id: 'teamForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'B1\\nB2\\nB3' }, reportValidity() { return true; } });
+  app.submit({ id: 'teamForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'B1\nB2\nB3' }, reportValidity() { return true; } });
   const db = app.data();
   app.submit({ id: 'matchForm', fields: { name: 'Regression', teamA: db.teams[0].id, teamB: db.teams[1].id, format, overs, ballsPerOver: '6', maxBowlerOvers: '4', venue: '', umpires: '' } });
   return app.data();

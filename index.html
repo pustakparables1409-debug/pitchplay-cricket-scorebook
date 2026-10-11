@@ -198,7 +198,7 @@ function recordRuns(run){
  const overEnded=inn.balls>0&&inn.balls%m.ballsPerOver===0;
  if(run%2)swap(inn);if(overEnded)swap(inn);
  afterDelivery(m,inn);updateMatchAssistant(m,inn);
- if(overEnded&&!inn.complete&&m.status==='live')inn.bowlerId=null;
+ 
  save();render();
  if(m.status==='completed')showMoment('result','MATCH COMPLETE',m.result);
  else if(batterRunsBefore<100&&b.runs>=100)showMoment('milestone','CENTURY!',b.name+' — bhai, zabardast century! Ground pe aaj aag laga di.');
@@ -237,7 +237,7 @@ function recordExtra(type,rawRuns){
  inn.events.push({over:ballsText(legal?Math.max(0,inn.balls-1):inn.balls,m.ballsPerOver),runs:batRuns,batRuns,total:teamTotal,bowlerRuns:(type==='wide'||type==='noBall')?teamTotal:0,legal,strikerId:inn.strikerId,strikerName:b&&b.name,bowlerId:inn.bowlerId,bowlerName:bw&&bw.name,extra:type==='noBall'?'no ball':type==='legBye'?'leg bye':type,wicket:null});
  if(runsForStrike%2)swap(inn);
  const overEnded=legal&&inn.balls>0&&inn.balls%m.ballsPerOver===0;if(overEnded)swap(inn);
- afterDelivery(m,inn);updateMatchAssistant(m,inn);if(overEnded&&!inn.complete&&m.status==='live')inn.bowlerId=null;
+ afterDelivery(m,inn);updateMatchAssistant(m,inn);
  closeModal();save();render();
  if(m.status==='completed')showMoment('result','MATCH COMPLETE',m.result);
  else if(overEnded){showMoment(inn.complete?'innings':'over',inn.complete?'INNINGS COMPLETE':'OVER COMPLETE',inn.complete?'Innings khatam bhai. End innings karke agla setup karo.':'Over ho gaya bhai — agle over ke liye naya bowler choose karo.');if(!inn.complete&&m.status==='live')openBowlerSetup()}
@@ -304,7 +304,7 @@ function recordWicket(form){
  inn.strikerId=nextPlayer?nextPlayer.id:null;if(nextPlayer)ensureBat(inn,nextPlayer.id);
  const overEnded=!noDelivery&&inn.balls>0&&inn.balls%m.ballsPerOver===0;if(overEnded)swap(inn);
  if(inn.wickets>=wicketLimit(inn))inn.complete=true;
- closeModal();afterDelivery(m,inn);updateMatchAssistant(m,inn);if(overEnded&&!inn.complete&&m.status==='live')inn.bowlerId=null;
+ closeModal();afterDelivery(m,inn);updateMatchAssistant(m,inn);
  save();render();
  if(m.status==='completed')showMoment('result','MATCH COMPLETE',m.result);else showMoment('wicket','WICKET!',(b&&b.name?b.name+' — ':'')+dismissal+(inn.complete?' · Saare wickets gir gaye!':' · Agla batter crease par aayega.'));
  if(overEnded&&!inn.complete&&m.status==='live')openBowlerSetup();

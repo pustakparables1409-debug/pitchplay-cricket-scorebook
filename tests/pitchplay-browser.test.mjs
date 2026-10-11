@@ -30,7 +30,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
-  assert.match(await page.locator('#saveStatus').innerText(), /Build 27/);
+  assert.match(await page.locator('#saveStatus').innerText(), /Build 28/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
   await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {
@@ -128,6 +128,10 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await page.locator('#inningsSetupForm button[type="submit"]').click();
   assert.equal(await page.locator('.batter select').count(),0,'batter dropdowns are removed from live scorecards');
   assert.equal(await page.locator('#app [data-bowler]').count(),0,'bowler changes appear only after an over ends');
+  await page.locator('[data-run="4"]').click();
+  await page.locator('[data-action="undo"]').click();
+  assert.match(await page.locator('.scorehero').innerText(), /0 \/ 0/);
+  assert.equal(await page.locator('#inningsSetupForm').count(), 0, 'undo must keep the selected lineup without prompting again');
   await page.locator('[data-run="4"]').click();
   await page.getByText('Real Browser Final').waitFor();
   assert.match(await page.locator('.scorehero').innerText(),/Metro XI/i);

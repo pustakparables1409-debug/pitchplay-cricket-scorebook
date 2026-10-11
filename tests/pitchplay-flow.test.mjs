@@ -98,7 +98,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 13');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 14');
 });
 
 test('all rendered action names are represented by the delegated action handler', () => {
@@ -124,6 +124,7 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
   assert.equal(db.teams.length, 1);
   assert.equal(db.teams[0].name, 'Metro XI');
   assert.equal(db.teams[0].players.length, 3);
+  assert.match(app.nodes['#app'].innerHTML, /Add one more team below/);
   assert.equal(app.nodes['#modalhost'].innerHTML, '');
 
   app.submit({
@@ -134,6 +135,14 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
   db = app.data();
   assert.equal(db.teams[0].players.length, 4);
   assert.equal(db.teams[0].players[3].name, 'Fourth Player');
+
+  app.submit({ id: 'teamForm', fields: { name: 'Harbor XI', short: 'HBX', color: '#173f75', players: 'Delta\nEcho' }, reportValidity() { return true; } });
+  db = app.data();
+  assert.equal(db.teams.length, 2);
+  assert.match(app.nodes['#app'].innerHTML, /Open Match Setup/);
+  app.click({ tab: 'matches' });
+  assert.match(app.nodes['#app'].innerHTML, /id="matchForm"/);
+  assert.doesNotMatch(app.nodes['#app'].innerHTML, /Create one more team before starting a match/);
 });
 
 test('match setup, legal scoring, extras, undo, wickets, innings transition and chase are consistent', () => {

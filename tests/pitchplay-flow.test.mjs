@@ -99,7 +99,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 17');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 18');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {

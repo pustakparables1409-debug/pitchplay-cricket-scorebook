@@ -32,7 +32,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
   assert.match(await page.locator('#saveStatus').innerText(), /Build 16/);
 
-  await page.locator('[data-action="new-team"]').click();
+  await page.locator('.welcome-actions [data-action="new-team"]').click();
   await page.locator('#teamNameInput').fill('Metro XI');
   assert.equal(await page.locator('#teamNameInput').inputValue(), 'Metro XI');
   await page.locator('input[name="short"]').fill('MTX');

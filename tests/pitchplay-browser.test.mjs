@@ -37,10 +37,26 @@ test('real Chromium can type, change team colour, save teams/players, and start 
     throw new Error('Team entry screen did not render. App text: ' + (await page.locator('#app').innerText()) + ' Page errors: ' + pageErrors.join(' | '));
   });
   const teamNameInput = page.locator('#teamNameInput');
-  await teamNameInput.evaluate(el => { window.__originalTeamNameInput = el; window.__inputDebug = []; document.addEventListener('input', ev => window.__inputDebug.push({ id:ev.target.id, value:ev.target.value, active:document.activeElement && document.activeElement.id, same:ev.target===window.__originalTeamNameInput }), true); });
+  await teamNameInput.evaluate(el => {
+    window.__originalTeamNameInput = el;
+    window.__inputDebug = [];
+    window.__focusEvents = [];
+    for (const type of ['pointerdown','mousedown','click','focusin','focusout','keydown','keyup','input']) {
+      document.addEventListener(type, ev => window.__focusEvents.push({ type, target:ev.target && ev.target.id, active:document.activeElement && document.activeElement.id, defaultPrevented:ev.defaultPrevented }), true);
+    }
+    document.addEventListener('input', ev => window.__inputDebug.push({ id:ev.target.id, value:ev.target.value, active:document.activeElement && document.activeElement.id, same:ev.target===window.__originalTeamNameInput }), true);
+  });
   await teamNameInput.click();
-  const focusedAfterClick = await teamNameInput.evaluate(el => document.activeElement === el);
-  assert.equal(focusedAfterClick, true, 'Team name input does not take focus when clicked');
+  const focusState = await teamNameInput.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + r.width/2, r.top + r.height/2);
+    const cs = getComputedStyle(el);
+    return { focused:document.activeElement===el, activeId:document.activeElement&&document.activeElement.id,
+      disabled:el.disabled, readOnly:el.readOnly, pointerEvents:cs.pointerEvents, visibility:cs.visibility,
+      display:cs.display, opacity:cs.opacity, rect:{x:r.x,y:r.y,w:r.width,h:r.height},
+      hitTag:hit&&hit.tagName, hitId:hit&&hit.id, hitClass:hit&&hit.className, outerHTML:el.outerHTML };
+  });
+  if (!focusState.focused) throw new Error('Team name click did not focus input: '+JSON.stringify({focusState,events:await teamNameInput.evaluate(()=>window.__focusEvents),pageErrors,appText:await page.locator('#app').innerText()}));
   await page.keyboard.type('Metro XI');
   const typingState = await teamNameInput.evaluate(el => ({
     value: el.value,

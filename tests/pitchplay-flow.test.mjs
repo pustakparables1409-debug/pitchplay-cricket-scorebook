@@ -334,6 +334,7 @@ test('a bowler is credited with a maiden only for a full over of scoreless legal
   inn = app.data().matches[0].innings[0];
   assert.equal(inn.bowlers[maidenBowlerId].maidens, 1, 'a wide at the next over must not count the maiden twice');
   app.click({ action: 'undo' });
+  app.changeBowler(nextBowlerId); // Undo clears the selection so the scorer explicitly reselects.
   app.click({ run: '1' });
   for (let i = 0; i < 5; i++) app.click({ run: '0' });
   inn = app.data().matches[0].innings[0];

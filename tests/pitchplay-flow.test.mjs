@@ -99,7 +99,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 24');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 25');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -311,8 +311,14 @@ test('a bowler is credited with a maiden only for a full over of scoreless legal
   seedMatch(app);
   for (let i = 0; i < 6; i++) app.click({ run: '0' });
   let inn = app.data().matches[0].innings[0];
-  assert.equal(inn.bowlers[inn.bowlerId].maidens, 1);
-  app.changeBowler(app.data().teams[1].players[1].id);
+  const maidenBowlerId = inn.bowlerId;
+  assert.equal(inn.bowlers[maidenBowlerId].maidens, 1);
+  const nextBowlerId = app.data().teams[1].players[1].id;
+  app.changeBowler(nextBowlerId);
+  app.click({ extra: 'wide' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.bowlers[maidenBowlerId].maidens, 1, 'a wide at the next over must not count the maiden twice');
+  app.click({ action: 'undo' });
   app.click({ run: '1' });
   for (let i = 0; i < 5; i++) app.click({ run: '0' });
   inn = app.data().matches[0].innings[0];

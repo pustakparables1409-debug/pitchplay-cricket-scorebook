@@ -30,7 +30,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
-  assert.match(await page.locator('#saveStatus').innerText(), /Build 26/);
+  assert.match(await page.locator('#saveStatus').innerText(), /Build 27/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
   await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {
@@ -112,7 +112,24 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await page.locator('#matchForm input[name="name"]').fill('Real Browser Final');
   await page.locator('#matchForm select[name="teamA"]').selectOption({ label:'Metro XI' });
   await page.locator('#matchForm select[name="teamB"]').selectOption({ label:'Harbor XI' });
+  await page.locator('#matchForm select[name="format"]').selectOption('T10');
+  assert.equal(await page.locator('#matchForm input[name="overs"]').inputValue(), '10');
+  await page.locator('#matchForm select[name="format"]').selectOption('T20');
+  assert.equal(await page.locator('#matchForm input[name="overs"]').inputValue(), '20');
   await page.locator('#matchForm button[type="submit"]').click();
+  await page.locator('#tossForm').waitFor();
+  await page.locator('#tossForm select[name="tossWinner"]').selectOption({label:'Harbor XI'});
+  await page.locator('#tossForm select[name="decision"]').selectOption('bowl');
+  await page.locator('#tossForm button[type="submit"]').click();
+  await page.locator('#inningsSetupForm').waitFor();
+  await page.locator('#inningsSetupForm select[name="striker"]').selectOption({label:'Alpha Batter'});
+  await page.locator('#inningsSetupForm select[name="nonStriker"]').selectOption({label:'Bravo Batter'});
+  await page.locator('#inningsSetupForm select[name="bowler"]').selectOption({label:'Delta Batter'});
+  await page.locator('#inningsSetupForm button[type="submit"]').click();
+  assert.equal(await page.locator('.batter select').count(),0,'batter dropdowns are removed from live scorecards');
+  assert.equal(await page.locator('#app [data-bowler]').count(),0,'bowler changes appear only after an over ends');
+  await page.locator('[data-run="4"]').click();
   await page.getByText('Real Browser Final').waitFor();
-  assert.deepEqual(pageErrors, []);
+  assert.match(await page.locator('.scorehero').innerText(),/Metro XI/);
+  assert.deepEqual(pageErrors,[]);
 });

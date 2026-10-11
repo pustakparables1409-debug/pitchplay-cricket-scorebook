@@ -76,7 +76,7 @@ function createHarness(existingStorage = new Map(), options = {}) {
     const event = { target: target(data), prevented: false, preventDefault() { this.prevented = true; } };
     for (const entry of (listeners.click || [])) entry.handler(event);
     if(data.action==='end-innings'||data.action==='declare'||data.action==='undo')setupCurrentInnings();
-    if(autoSetup&&(data.extra==='wide'||data.extra==='noBall')&&nodes['#modalhost'].innerHTML.includes('extraRunsForm'))submit({id:'extraRunsForm',fields:{type:data.extra,runs:'0'}});
+    if(autoSetup&&['wide','noBall','bye','legBye','penalty'].includes(data.extra)&&nodes['#modalhost'].innerHTML.includes('extraRunsForm'))submit({id:'extraRunsForm',fields:{type:data.extra,runs:(data.extra==='bye'||data.extra==='legBye')?'1':data.extra==='penalty'?'5':'0'}});
     return event;
   }
   function setupCurrentInnings() {
@@ -354,7 +354,7 @@ test('undo snapshots stay small and restore the event history correctly', () => 
 
 test('a limited-overs chase that falls short finishes automatically with the correct margin', () => {
   const app = createHarness();
-  seedMatch(app, 'T20', '1');
+  seedMatch(app, 'Custom', '1');
   for (let i = 0; i < 6; i++) app.click({ run: '1' });
   app.click({ action: 'end-innings' });
   for (let i = 0; i < 6; i++) app.click({ run: '0' });
@@ -418,8 +418,8 @@ test('match report includes every innings, extras breakdown, fall of wickets and
 
 test('T10/T20/ODI presets and toss decision determine innings order while player selection stays manual', () => {
  const app=createHarness(new Map(),{tossWinnerField:'teamB',tossDecision:'bowl',autoSetup:false});
- app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'North XI',short:'NR',color:'#236447',players:'N1\\nN2'},reportValidity(){return true}});
- app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'South XI',short:'ST',color:'#173f75',players:'S1\\nS2'},reportValidity(){return true}});
+ app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'North XI',short:'NR',color:'#236447',players:'N1\nN2'},reportValidity(){return true}});
+ app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'South XI',short:'ST',color:'#173f75',players:'S1\nS2'},reportValidity(){return true}});
  const teams=app.data().teams;
  app.submit({id:'matchForm',fields:{name:'Toss Test',teamA:teams[0].id,teamB:teams[1].id,format:'T10',overs:'20',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
  let m=app.data().matches[0];assert.equal(m.overs,10);assert.equal(m.tossWinnerId,teams[1].id);assert.equal(m.tossDecision,'bowl');assert.equal(m.firstBattingTeamId,teams[0].id);assert.equal(m.innings[0].battingTeamId,teams[0].id);assert.equal(m.innings[0].strikerId,null);assert.equal(m.innings[0].nonStrikerId,null);assert.equal(m.innings[0].bowlerId,null);
@@ -435,4 +435,30 @@ test('PDF report contains dismissal attribution and partnerships but excludes ba
  assert.ok(report.includes('partnershipsTable(inn)'));
  assert.equal(report.includes('ballByBallTable(inn,m)'),false);
  assert.ok(source.includes('Download match scorecard PDF'));
+});
+
+
+test('desi match assistant refreshes every three legal balls and skips wides/no-balls', () => {
+  const app = createHarness();
+  seedMatch(app);
+  for (let i = 0; i < 2; i++) app.click({ run: '1' });
+  let inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary, null, 'no commentary refresh before three legal balls');
+  app.click({ run: '1' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary.legalBalls, 3);
+  assert.match(inn.assistantCommentary.headline + inn.assistantCommentary.body, /bhai|scene|batting/i);
+  app.click({ extra: 'wide' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary.legalBalls, 3, 'wide is not a legal ball');
+  app.click({ extra: 'noBall' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary.legalBalls, 3, 'no-ball is not a legal ball');
+  app.click({ run: '0' });
+  app.click({ run: '0' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary.legalBalls, 3, 'wait until the sixth legal ball');
+  app.click({ run: '0' });
+  inn = app.data().matches[0].innings[0];
+  assert.equal(inn.assistantCommentary.legalBalls, 6);
 });

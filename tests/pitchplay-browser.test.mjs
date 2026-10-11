@@ -130,6 +130,6 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   assert.equal(await page.locator('#app [data-bowler]').count(),0,'bowler changes appear only after an over ends');
   await page.locator('[data-run="4"]').click();
   await page.getByText('Real Browser Final').waitFor();
-  assert.match(await page.locator('.scorehero').innerText(),/Metro XI/);
+  assert.match(await page.locator('.scorehero').innerText(),/Metro XI/i);
   assert.deepEqual(pageErrors,[]);
 });

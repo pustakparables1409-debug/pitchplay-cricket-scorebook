@@ -30,7 +30,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
-  assert.match(await page.locator('#saveStatus').innerText(), /Build 19/);
+  assert.match(await page.locator('#saveStatus').innerText(), /Build 20/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
   await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {

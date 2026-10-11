@@ -12,5 +12,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install Chromium test browser
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
       - name: Run flow and scoring smoke tests
-        run: node --test tests/pitchplay-flow.test.mjs
+        run: node --test tests/pitchplay-flow.test.mjs tests/pitchplay-browser.test.mjs

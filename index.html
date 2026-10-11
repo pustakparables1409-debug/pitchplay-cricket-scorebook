@@ -329,7 +329,7 @@ document.addEventListener('submit',e=>{
    if(!name){const field=$('#teamNameInput');if(field)field.focus();setSaveStatus('Type a team name to continue');return}
    try{
      const created=createTeam({name,short:f.get('short'),color:f.get('color'),players:f.get('players')});
-     if(created){setSaveStatus('Team added: '+created.name);const field=$('#teamNameInput');if(field){try{field.focus({preventScroll:true})}catch(ignore){}}}}
+     if(created){setSaveStatus('Team added: '+created.name);const field=$('#teamNameInput');if(field){try{field.focus({preventScroll:true})}catch(ignore){}}}
    }catch(err){console.error('PitchPlay team submit failed:',err);alert('Team could not be saved: '+(err&&err.message||'Please try again.'))}
    return
  }

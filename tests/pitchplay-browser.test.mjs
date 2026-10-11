@@ -75,7 +75,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
     el.dispatchEvent(new Event('input', { bubbles:true }));
     el.dispatchEvent(new Event('change', { bubbles:true }));
   });
-  await page.locator('textarea[name="players"]').fill('Alpha Batter\\nBravo Batter');
+  await page.locator('textarea[name="players"]').fill('Alpha Batter\nBravo Batter');
   await page.getByRole('button', { name:/Create team & squad/ }).click();
   const metro = page.locator('.teamcard').filter({ hasText:'Metro XI' });
   await metro.waitFor();
@@ -96,7 +96,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
     el.dispatchEvent(new Event('input', { bubbles:true }));
     el.dispatchEvent(new Event('change', { bubbles:true }));
   });
-  await page.locator('textarea[name="players"]').fill('Delta Batter\\nEcho Batter');
+  await page.locator('textarea[name="players"]').fill('Delta Batter\nEcho Batter');
   await page.getByRole('button', { name:/Create team & squad/ }).click();
   const harbor = page.locator('.teamcard').filter({ hasText:'Harbor XI' });
   await harbor.waitFor();

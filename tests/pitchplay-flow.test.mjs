@@ -114,7 +114,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 27');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 28');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -422,11 +422,11 @@ test('T10/T20/ODI presets and toss decision determine innings order while player
  app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'North XI',short:'NR',color:'#236447',players:'N1\nN2'},reportValidity(){return true}});
  app.click({action:'new-team'});app.submit({id:'teamForm',fields:{name:'South XI',short:'ST',color:'#173f75',players:'S1\nS2'},reportValidity(){return true}});
  const teams=app.data().teams;
- app.submit({id:'matchForm',fields:{name:'Toss Test',teamA:teams[0].id,teamB:teams[1].id,format:'T10',overs:'20',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
+ app.submit({id:'matchForm',fields:{name:'Toss Test',teamA:teams[0].id,teamB:teams[1].id,format:'T10',overs:'10',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
  let m=app.data().matches[0];assert.equal(m.overs,10);assert.equal(m.tossWinnerId,teams[1].id);assert.equal(m.tossDecision,'bowl');assert.equal(m.firstBattingTeamId,teams[0].id);assert.equal(m.innings[0].battingTeamId,teams[0].id);assert.equal(m.innings[0].strikerId,null);assert.equal(m.innings[0].nonStrikerId,null);assert.equal(m.innings[0].bowlerId,null);
- app.submit({id:'matchForm',fields:{name:'T20 Test',teamA:teams[0].id,teamB:teams[1].id,format:'T20',overs:'10',ballsPerOver:'6',maxBowlerOvers:'2',venue:'',umpires:''}});
+ app.submit({id:'matchForm',fields:{name:'T20 Test',teamA:teams[0].id,teamB:teams[1].id,format:'T20',overs:'20',ballsPerOver:'6',maxBowlerOvers:'2',venue:'',umpires:''}});
  m=app.data().matches[0];assert.equal(m.overs,20);
- app.submit({id:'matchForm',fields:{name:'ODI Test',teamA:teams[0].id,teamB:teams[1].id,format:'ODI',overs:'20',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
+ app.submit({id:'matchForm',fields:{name:'ODI Test',teamA:teams[0].id,teamB:teams[1].id,format:'ODI',overs:'50',ballsPerOver:'6',maxBowlerOvers:'4',venue:'',umpires:''}});
  assert.equal(app.data().matches[0].overs,50);
 });
 test('PDF report contains dismissal attribution and partnerships but excludes ball-by-ball listing',()=>{
@@ -462,4 +462,42 @@ test('desi match assistant refreshes every three legal balls and skips wides/no-
   app.click({ run: '0' });
   inn = app.data().matches[0].innings[0];
   assert.equal(inn.assistantCommentary.legalBalls, 6);
+});
+
+
+test('undo reverses only the latest ball and preserves the chosen batters and bowler', () => {
+ const app=createHarness();const db=seedMatch(app,'Custom','2');const m=db.matches[0],inn=m.innings[0];
+ const original={striker:inn.strikerId,non:inn.nonStrikerId,bowler:inn.bowlerId};
+ app.click({run:'4'});
+ assert.equal(app.data().matches[0].innings[0].total,4);
+ app.click({action:'undo'});
+ const restored=app.data().matches[0].innings[0];
+ assert.equal(restored.total,0);assert.equal(restored.balls,0);
+ assert.equal(restored.strikerId,original.striker);assert.equal(restored.nonStrikerId,original.non);assert.equal(restored.bowlerId,original.bowler);
+ assert.equal(app.nodes['#modalhost'].innerHTML,'','undo should not reopen player selection');
+ app.click({run:'2'});
+ assert.equal(app.data().matches[0].innings[0].total,2,'scoring should resume immediately after undo');
+});
+
+test('a custom two-over innings stops at twelve legal balls and completed matches return home while staying in history', () => {
+ const app=createHarness();seedMatch(app,'Custom','2');
+ for(let i=0;i<12;i++)app.click({run:'0'});
+ let m=app.data().matches[0];
+ assert.equal(m.innings[0].balls,12);assert.equal(m.innings[0].complete,true);
+ app.click({run:'4'});
+ assert.equal(app.data().matches[0].innings[0].balls,12,'no 13th legal ball in a two-over innings');
+ app.click({action:'end-innings'});
+ m=app.data().matches[0];assert.equal(m.currentInnings,1);assert.equal(m.innings[1].target,1);
+ for(let i=0;i<12;i++)app.click({run:'0'});
+ m=app.data().matches[0];assert.equal(m.status,'completed');assert.equal(m.innings[1].balls,12);assert.equal(app.data().currentMatchId,null);
+ assert.match(app.nodes['#app'].innerHTML,/Every run has a story/,'completed match should return to the original home screen');
+ app.click({tab:'matches'});
+ assert.match(app.nodes['#app'].innerHTML,/Match history/);assert.match(app.nodes['#app'].innerHTML,/Regression/,'completed match remains in history');
+});
+
+test('PDF scorecard marks not-out batters with an asterisk and uses theme colour for live scoring', () => {
+ assert.ok(source.includes('<span class="sub">*</span>'));
+ assert.equal(source.includes('<span class="sub">not out</span>'),false);
+ assert.ok(source.includes('.scorehero{background:var(--brand);color:white;'));
+ assert.equal(source.includes('scorehero" style="--teamcolor:'),false);
 });

@@ -60,6 +60,7 @@ function createHarness(existingStorage = new Map()) {
       dataset: data,
       parentElement: null,
       closest(selector) {
+        if (selector === 'form' && data.form) return data.form;
         if (selector === '[data-tab]' && data.tab !== undefined) return this;
         if (selector === '[data-theme]' && data.theme !== undefined) return this;
         if (selector === '[data-run]' && data.run !== undefined) return this;
@@ -143,6 +144,32 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
   app.click({ tab: 'matches' });
   assert.match(app.nodes['#app'].innerHTML, /id="matchForm"/);
   assert.doesNotMatch(app.nodes['#app'].innerHTML, /Create one more team before starting a match/);
+});
+
+test('team and player Add buttons save directly without relying on native form submit', () => {
+  const app = createHarness();
+  const teamForm = {
+    id: 'teamForm',
+    fields: { name: 'Direct XI', short: 'DRX', color: '#236447', players: 'Batter One\nBatter Two' },
+    reportValidity() { return true; }
+  };
+  app.click({ action: 'create-team', form: teamForm });
+  let db = app.data();
+  assert.equal(db.teams.length, 1);
+  assert.equal(db.teams[0].name, 'Direct XI');
+  assert.equal(db.teams[0].players.length, 2);
+  assert.match(app.nodes['#saveStatus'].textContent, /Saved team: Direct XI/);
+
+  const playerForm = {
+    fields: { playerName: 'Third Batter', jersey: '9' },
+    dataset: { team: db.teams[0].id },
+    querySelector() { return null; }
+  };
+  app.click({ action: 'add-player', form: playerForm });
+  db = app.data();
+  assert.equal(db.teams[0].players.length, 3);
+  assert.equal(db.teams[0].players[2].name, 'Third Batter');
+  assert.match(app.nodes['#saveStatus'].textContent, /Saved player: Third Batter/);
 });
 
 test('match setup, legal scoring, extras, undo, wickets, innings transition and chase are consistent', () => {

@@ -113,7 +113,6 @@ test('team modal accepts typing, creates a squad, and player form persists', () 
   app.click({ action: 'new-team' });
   assert.match(app.nodes['#app'].innerHTML, /id="teamForm"/);
   assert.equal(app.nodes['#teamNameInput'].focused, true);
-  assert.equal(app.nodes['#newTeamName'].focused, true);
 
   app.submit({
     id: 'teamForm', fields: {

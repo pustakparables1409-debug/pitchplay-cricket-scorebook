@@ -99,7 +99,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 25');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 26');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -367,4 +367,34 @@ test('corrupt saved data is preserved under a backup key', () => {
   const app = createHarness(storage);
   assert.ok([...storage.keys()].some(key => key.startsWith('pitchplay-cricket-v3-corrupt-')));
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Create your team/);
+});
+
+
+test('scoring celebrations cover boundaries, wickets, fifties, centuries, overs and results', () => {
+  assert.match(html, /@keyframes pp-scorefx/);
+  assert.match(source, /function showMoment\(kind,title,detail\)/);
+  assert.match(source, /showMoment\('four','BOUNDARY! FOUR'/);
+  assert.match(source, /showMoment\('six','SIX! OUT OF THE PARK'/);
+  assert.match(source, /showMoment\('milestone','HALF-CENTURY!'/);
+  assert.match(source, /showMoment\('milestone','CENTURY!'/);
+  assert.match(source, /showMoment\('wicket','WICKET!'/);
+  assert.match(source, /showMoment\('over','OVER COMPLETE'/);
+  assert.match(source, /showMoment\('result','MATCH COMPLETE'/);
+});
+test('wicket flow requires an incoming batter except when the innings will be all out', () => {
+  assert.match(source, /const needsNext=inn\.wickets\+1<wicketLimit\(inn\)/);
+  assert.match(source, /needsNext\?'required':''/);
+  assert.match(source, /Choose the incoming batter before confirming this wicket/);
+  assert.match(source, /p\.id!==otherId/);
+  assert.match(source, /!stats\.out/);
+});
+test('match report includes every innings, extras breakdown, fall of wickets and ball-by-ball events', () => {
+  assert.match(source, /function matchSummary\(m\)/);
+  assert.match(source, /Export detailed match PDF/);
+  assert.match(source, /function extrasBreakdown\(inn\)/);
+  assert.match(source, /function fallOfWickets\(inn\)/);
+  assert.match(source, /function ballByBallTable\(inn,m\)/);
+  assert.match(source, /function inningsReport\(inn,m,index,printMode\)/);
+  assert.match(source, /for\(let idx=0;idx<m\.innings\.length;idx\+\+\)/);
+  assert.match(source, /window\.print\(\)/);
 });

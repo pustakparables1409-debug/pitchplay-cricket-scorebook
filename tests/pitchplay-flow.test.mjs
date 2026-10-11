@@ -279,6 +279,7 @@ test('match setup, legal scoring, extras, undo, wickets, innings transition and 
   app.click({ action: 'end-innings' });
   assert.equal(app.data().matches[0].innings.length, 2, 'a completed chase must not start a third innings');
 
+  app.click({ action: 'open-match', id: db.matches[0].id });
   app.click({ action: 'undo' });
   db = app.data();
   assert.equal(db.matches[0].status, 'live');
@@ -481,14 +482,14 @@ test('undo reverses only the latest ball and preserves the chosen batters and bo
 
 test('a custom two-over innings stops at twelve legal balls and completed matches return home while staying in history', () => {
  const app=createHarness();seedMatch(app,'Custom','2');
- for(let i=0;i<12;i++)app.click({run:'0'});
+ for(let i=0;i<12;i++){app.click({run:'0'});if(i===5)app.changeBowler(app.data().teams[1].players[1].id)}
  let m=app.data().matches[0];
  assert.equal(m.innings[0].balls,12);assert.equal(m.innings[0].complete,true);
  app.click({run:'4'});
  assert.equal(app.data().matches[0].innings[0].balls,12,'no 13th legal ball in a two-over innings');
  app.click({action:'end-innings'});
  m=app.data().matches[0];assert.equal(m.currentInnings,1);assert.equal(m.innings[1].target,1);
- for(let i=0;i<12;i++)app.click({run:'0'});
+ for(let i=0;i<12;i++){app.click({run:'0'});if(i===5)app.changeBowler(app.data().teams[0].players[1].id)}
  m=app.data().matches[0];assert.equal(m.status,'completed');assert.equal(m.innings[1].balls,12);assert.equal(app.data().currentMatchId,null);
  assert.match(app.nodes['#app'].innerHTML,/Every run has a story/,'completed match should return to the original home screen');
  app.click({tab:'matches'});
@@ -498,6 +499,6 @@ test('a custom two-over innings stops at twelve legal balls and completed matche
 test('PDF scorecard marks not-out batters with an asterisk and uses theme colour for live scoring', () => {
  assert.ok(source.includes('<span class="sub">*</span>'));
  assert.equal(source.includes('<span class="sub">not out</span>'),false);
- assert.ok(source.includes('.scorehero{background:var(--brand);color:white;'));
- assert.equal(source.includes('scorehero" style="--teamcolor:'),false);
+ assert.ok(html.includes('.scorehero{background:var(--brand);color:white;'));
+ assert.equal(html.includes('scorehero" style="--teamcolor:'),false);
 });

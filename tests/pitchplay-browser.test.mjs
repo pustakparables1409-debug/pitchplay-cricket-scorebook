@@ -30,7 +30,7 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   await page.goto('http://127.0.0.1:' + server.address().port, { waitUntil:'networkidle' });
-  assert.match(await page.locator('#saveStatus').innerText(), /Build 28/);
+  assert.match(await page.locator('#saveStatus').innerText(), /Build 29/);
 
   await page.locator('.welcome-actions [data-action="new-team"]').click();
   await page.waitForSelector('#teamNameInput', { timeout: 5000 }).catch(async () => {
@@ -135,5 +135,14 @@ test('real Chromium can type, change team colour, save teams/players, and start 
   await page.locator('[data-run="4"]').click();
   await page.getByText('Real Browser Final').waitFor();
   assert.match(await page.locator('.scorehero').innerText(),/Metro XI/i);
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForTimeout(100);
+  const shellRect=await page.locator('.shell').evaluate(el=>el.getBoundingClientRect().width);
+  const buttonHeight=await page.locator('[data-run="4"]').evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(shellRect<=390,'scoring shell should fit inside phone viewport: '+shellRect);
+  assert.ok(buttonHeight>=59,'run buttons should be thumb-sized on phone: '+buttonHeight);
+  assert.equal(await page.locator('.shell .nav').evaluate(el=>getComputedStyle(el).display),'none','global nav is replaced by compact scoring navigation on phone');
+  assert.equal(await page.locator('.score-pagehead [data-action="score-home"]').count(),1);
+  assert.equal(await page.locator('.score-pagehead [data-tab="matches"]').count(),1);
   assert.deepEqual(pageErrors,[]);
 });

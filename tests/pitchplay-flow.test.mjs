@@ -514,5 +514,5 @@ test('mobile scoring layout adapts to phone width and desi commentary has a shar
  assert.ok(source.includes('chutiya harkat'));
  assert.ok(source.includes('data-action="score-home"'));
  assert.ok(source.includes('data-tab="matches"'));
- assert.ok(source.includes('.scorehero{background:var(--brand);color:white;'));
+ assert.ok(html.includes('.scorehero{background:var(--brand);color:white;'));
 });

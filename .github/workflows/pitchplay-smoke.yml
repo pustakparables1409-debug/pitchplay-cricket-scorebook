@@ -21,3 +21,18 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Run flow and scoring smoke tests
         run: node --test tests/pitchplay-flow.test.mjs tests/pitchplay-browser.test.mjs
+      - name: Build Netlify Drop ZIP
+        if: success()
+        run: |
+          mkdir -p netlify-drop
+          cp index.html sw.js manifest.webmanifest pitchplay-icon.svg _headers netlify.toml netlify-drop/
+          cd netlify-drop
+          zip -9 -q -r ../pitchplay-netlify-build29.zip .
+      - name: Upload Netlify Drop ZIP
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitchplay-netlify-build29
+          path: pitchplay-netlify-build29.zip
+          if-no-files-found: error
+          retention-days: 14

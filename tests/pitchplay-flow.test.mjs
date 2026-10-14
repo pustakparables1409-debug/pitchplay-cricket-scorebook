@@ -114,7 +114,7 @@ test('inline application JavaScript parses and has a startup status', () => {
   assert.doesNotThrow(() => new Function(source));
   const app = createHarness();
   assert.match(app.nodes['#app'].innerHTML, /Every run has a story|Live Scoring|Create your team/);
-  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 28');
+  assert.equal(app.nodes['#saveStatus'].textContent, 'Ready · Build 29');
 });
 
 test('text fields remain editable and render visible typed text/caret styles', () => {
@@ -501,4 +501,18 @@ test('PDF scorecard marks not-out batters with an asterisk and uses theme colour
  assert.equal(source.includes('<span class="sub">not out</span>'),false);
  assert.ok(html.includes('.scorehero{background:var(--brand);color:white;'));
  assert.equal(html.includes('scorehero" style="--teamcolor:'),false);
+});
+
+
+test('mobile scoring layout adapts to phone width and desi commentary has a sharper roast voice', () => {
+ assert.ok(html.includes('id="pp-build29-polish"'));
+ assert.ok(html.includes('.shell.scoring-mode{max-width:none;width:100%;min-height:100dvh'));
+ assert.ok(html.includes('min-height:clamp(59px,16vw,72px)'));
+ assert.ok(html.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
+ assert.ok(source.includes('CHUTIYAPA'));
+ assert.ok(source.includes('antim sanskaar'));
+ assert.ok(source.includes('chutiya harkat'));
+ assert.ok(source.includes('data-action="score-home"'));
+ assert.ok(source.includes('data-tab="matches"'));
+ assert.ok(source.includes('.scorehero{background:var(--brand);color:white;'));
 });

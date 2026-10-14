@@ -1,5 +1,5 @@
 /* PitchPlay versioned app shell. Network-first navigations help fixes reach users; cached fallback keeps the app shell available offline. */
-const CACHE_NAME = 'pitchplay-shell-v28';
+const CACHE_NAME = 'pitchplay-shell-v29';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './pitchplay-icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
